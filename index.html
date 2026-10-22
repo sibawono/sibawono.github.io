@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dinta Report Assistant</title>
+<meta name="description" content="Aplikasi desktop untuk menyusun bukti kerja harian Tenaga Ahli dan mencatatnya ke Log Aktivitas Harian.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body><main>
+<header>
+  <nav><a href="./">Beranda</a><a href="privacy.html">Kebijakan Privasi</a></nav>
+  <h1 style="margin-top:24px">Dinta Report Assistant</h1>
+  <p class="muted">Aplikasi desktop (macOS &amp; Windows) untuk menyusun screenshot bukti kerja dan mencatatnya ke Log Aktivitas Harian Individu.</p>
+</header>
+
+<div class="card">
+  <h2 style="margin-top:0">Apa yang dilakukan aplikasi ini</h2>
+  <ul>
+    <li>Membaca teks screenshot <b>di komputer pengguna</b> untuk menyarankan nama aktivitas dengan format <code>MM-DD_Nama Aktivitas</code>.</li>
+    <li>Membantu memilih task dari master task, lalu mencatat aktivitas ke file Excel Log Aktivitas Harian di komputer pengguna.</li>
+    <li>Bila pengguna masuk dengan akun Google: mengunggah screenshot ke folder laporan yang <b>dipilih sendiri</b> oleh pengguna dan menambahkan baris ke Google Sheet laporan yang <b>dipilih sendiri</b> oleh pengguna.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Akses Google yang diminta</h2>
+  <ul>
+    <li><b>Email akun Google</b> (<code>openid</code>, <code>email</code>) — untuk menampilkan akun yang sedang tersambung.</li>
+    <li><b>File yang dipilih pengguna</b> (<code>drive.file</code>) — hanya folder dan Google Sheet yang dipilih pengguna lewat Google Picker, serta file yang dibuat oleh aplikasi. Aplikasi tidak dapat melihat file Google Drive lainnya.</li>
+  </ul>
+  <p class="muted">Tidak ada server pihak ketiga: aplikasi berkomunikasi langsung dari komputer pengguna ke Google.</p>
+</div>
+
+<footer>Kontak: <a href="mailto:anggi.bawono@me.com">anggi.bawono@me.com</a> · <a href="privacy.html">Kebijakan Privasi</a></footer>
+</main></body>
+</html>
