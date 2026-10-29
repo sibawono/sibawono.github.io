@@ -77,7 +77,7 @@
     <tr><td>Nama aktivitas, tanggal, task, status</td><td>Menyusun Log Aktivitas Harian</td><td>Komputer Anda (riwayat &amp; file Excel lokal)</td><td>Google Sheet pilihan Anda, saat Anda menyinkronkan</td></tr>
     <tr><td>Profil (nama, rumpun, level, squad, platform)</td><td>Mengisi kolom laporan &amp; nama folder</td><td>Komputer Anda</td><td>Ikut tertulis di nama folder/Sheet Google Anda</td></tr>
     <tr><td>Pola nama yang dipelajari</td><td>Saran nama berikutnya</td><td>Komputer Anda</td><td>Tidak dikirim</td></tr>
-    <tr><td>Email akun Google &amp; token login</td><td>Menampilkan akun &amp; menghubungi Google</td><td>Keychain macOS / file terenkripsi DPAPI di Windows</td><td>Google; token identitas juga ke Layanan Data DINTA (§5)</td></tr>
+    <tr><td>Email akun Google &amp; token login</td><td>Menampilkan akun &amp; menghubungi Google</td><td>Keychain macOS / file terenkripsi DPAPI di Windows</td><td>Google; ID token juga ke Layanan Data DINTA (§5)</td></tr>
     <tr><td>Presensi, cuti, saldo cuti Talenta <span class="tag">Mac</span></td><td>Menampilkan presensi &amp; kekurangan absen</td><td>Komputer Anda; cookie sesi di Keychain</td><td>Hanya ke Talenta sendiri</td></tr>
     <tr><td>Agenda kalender <span class="tag">Mac</span></td><td>Mencocokkan screenshot dengan meeting</td><td>Tidak disalin; dibaca langsung dari macOS</td><td>Tidak dikirim</td></tr>
     <tr><td>Lokasi <span class="tag">Mac</span></td><td>Live Attendance Talenta</td><td>Tidak disimpan</td><td>Talenta, hanya saat Anda membuka Live Attendance</td></tr>
@@ -134,7 +134,7 @@
 <h2 id="layanan">5. Layanan Data DINTA</h2>
 <p>Daftar task (dari file master task terbaru) dan daftar Tenaga Ahli tidak dibundel di dalam aplikasi; keduanya diambil dari <b>Layanan Data DINTA</b>, yaitu layanan kecil milik pengembang yang berjalan di Cloudflare Workers dan diisi otomatis dari Google Apps Script milik admin.</p>
 <ul>
-  <li><b>Yang dikirim aplikasi:</b> <i>ID token</i> Google Anda (berisi alamat email, ID akun Google, dan masa berlaku) agar layanan dapat memastikan Anda memakai akun <code>teknologi.belajar.id</code>. Di versi macOS saat ini, token akses login juga ikut terkirim di header permintaan; layanan tidak memakai maupun menyimpannya.</li>
+  <li><b>Yang dikirim aplikasi:</b> hanya <i>ID token</i> Google Anda (berisi alamat email, ID akun Google, dan masa berlaku) agar layanan dapat memastikan Anda memakai akun <code>teknologi.belajar.id</code>. ID token tidak dapat dipakai untuk membuka Drive atau Sheet Anda. <i>(Catatan: aplikasi Mac hingga Ver 1.0 Build 01 juga mengirim token akses login di header permintaan; layanan tidak memakai maupun menyimpannya, dan versi sesudahnya tidak lagi mengirimnya.)</i></li>
   <li><b>Yang diterima aplikasi:</b> daftar task, serta daftar Tenaga Ahli berisi nama, rumpun, level, kategori, platform, dan squad (<b>tanpa email</b>) untuk membantu Anda mengisi profil.</li>
   <li><b>Yang disimpan layanan:</b> hanya salinan daftar task dan daftar Tenaga Ahli. Layanan <b>tidak menyimpan</b> token, email, atau data aktivitas Anda. Sebagai penyedia infrastruktur, Cloudflare dapat mencatat data teknis permintaan (mis. alamat IP dan waktu) sesuai kebijakannya.</li>
   <li>Aplikasi Windows saat ini tidak memakai layanan ini.</li>
@@ -182,7 +182,7 @@
   <li>GitHub (pembaruan aplikasi &amp; situs ini) — <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a></li>
   <li>Apple (OCR, Kalender, Apple Intelligence di perangkat) — <a href="https://www.apple.com/legal/privacy/">apple.com/legal/privacy</a></li>
 </ul>
-<p>Situs ini adalah halaman statis di GitHub Pages tanpa cookie, formulir, atau skrip analitik.</p>
+<p>Situs ini adalah halaman statis di GitHub Pages tanpa cookie, formulir, atau skrip analitik. Situs utama aplikasi, <a href="https://dinta.bawono.pro/dinta/privasi/">dinta.bawono.pro</a>, memuat isi kebijakan yang sama.</p>
 
 <h2 id="hapus">14. Penyimpanan &amp; penghapusan</h2>
 <p>Data lokal disimpan selama aplikasi terpasang dan tidak dihapus otomatis, agar riwayat laporan bulanan tetap ada. Cara menghapus:</p>
