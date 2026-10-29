@@ -3,49 +3,218 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kebijakan Privasi — Dinta Report Assistant</title>
+<meta name="description" content="Kebijakan Privasi Dinta Report Assistant: data apa yang diproses, di mana disimpan, ke mana dikirim, dan cara menghapusnya.">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  .toc{columns:2;column-gap:28px;margin:0;padding-left:20px}
+  .toc li{break-inside:avoid}
+  .tbl{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}
+  .tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
+  .tbl th{color:var(--muted);font-weight:600;white-space:nowrap}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .scroll .tbl{min-width:640px}
+  .tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:2px}
+  code{font-size:.92em;word-break:break-word}
+  h3{font-size:16px;margin:18px 0 4px}
+  @media (max-width:600px){.toc{columns:1}h1{font-size:28px}}
+</style>
 </head>
 <body><main>
 <header>
   <nav><a href="./">Beranda</a><a href="privacy.html">Kebijakan Privasi</a></nav>
   <h1 style="margin-top:24px">Kebijakan Privasi</h1>
-  <p class="muted">Dinta Report Assistant · berlaku sejak 22 Oktober 2026</p>
+  <p class="muted">Dinta Report Assistant (macOS &amp; Windows) · berlaku sejak 29 Oktober 2026 · menggantikan versi 22 Oktober 2026</p>
 </header>
 
 <div class="card">
   <h2 style="margin-top:0">Ringkasan</h2>
-  <p>Dinta Report Assistant adalah aplikasi desktop. Data Anda diproses di komputer Anda sendiri. Pengembang <b>tidak mengumpulkan, menyimpan, atau menerima</b> data Anda di server mana pun.</p>
+  <ul>
+    <li>Dinta Report Assistant adalah <b>aplikasi desktop</b>. Screenshot, teks hasil OCR, daftar aktivitas, dan profil Anda <b>diproses dan disimpan di komputer Anda sendiri</b>.</li>
+    <li>Data hanya keluar dari komputer Anda ke layanan yang Anda sambungkan sendiri — <b>Google</b> (Drive &amp; Sheets), <b>Talenta</b> (presensi, khusus Mac) — dan ke <b>Layanan Data DINTA</b> untuk mengambil daftar task dan daftar Tenaga Ahli.</li>
+    <li>Pengembang <b>tidak menyimpan</b> data pribadi Anda di server, <b>tidak memasang analitik, pelacak, atau iklan</b>, tidak menjual data, dan tidak memakai data Anda untuk melatih model AI.</li>
+    <li>Anda dapat memutus setiap sambungan dan menghapus seluruh data aplikasi kapan saja (lihat <a href="#hapus">Penyimpanan &amp; penghapusan</a>).</li>
+  </ul>
 </div>
 
-<h2>Data yang diproses di komputer Anda</h2>
-<ul>
-  <li>Screenshot yang Anda tambahkan, beserta teks yang dibaca dari screenshot (OCR) — untuk menyarankan nama aktivitas.</li>
-  <li>Nama aktivitas, tanggal, dan task yang Anda pilih — untuk menulis file Excel Log Aktivitas Harian di komputer Anda.</li>
-  <li>Profil (nama, rumpun, level, squad, platform) yang Anda isi.</li>
-</ul>
-<p>Data ini disimpan di folder data aplikasi pada komputer Anda dan dapat Anda hapus kapan saja.</p>
+<div class="card">
+  <h2 style="margin-top:0">Daftar isi</h2>
+  <ol class="toc">
+    <li><a href="#pengelola">Pengelola &amp; ruang lingkup</a></li>
+    <li><a href="#tabel">Ringkasan data per fitur</a></li>
+    <li><a href="#lokal">Data di komputer Anda</a></li>
+    <li><a href="#google">Akun Google, Drive &amp; Sheets</a></li>
+    <li><a href="#layanan">Layanan Data DINTA</a></li>
+    <li><a href="#talenta">Talenta (presensi &amp; cuti)</a></li>
+    <li><a href="#kalender">Kalender</a></li>
+    <li><a href="#lokasi">Lokasi</a></li>
+    <li><a href="#ai">Fitur AI di perangkat</a></li>
+    <li><a href="#update">Pemeriksaan pembaruan</a></li>
+    <li><a href="#diagnostik">Log diagnostik</a></li>
+    <li><a href="#tidak">Yang tidak kami lakukan</a></li>
+    <li><a href="#pihak">Pihak ketiga</a></li>
+    <li><a href="#hapus">Penyimpanan &amp; penghapusan</a></li>
+    <li><a href="#keamanan">Keamanan</a></li>
+    <li><a href="#hak">Hak Anda</a></li>
+    <li><a href="#perubahan">Perubahan kebijakan</a></li>
+    <li><a href="#kontak">Kontak</a></li>
+  </ol>
+</div>
 
-<h2>Data Google (bila Anda masuk dengan akun Google)</h2>
+<h2 id="pengelola">1. Pengelola &amp; ruang lingkup</h2>
+<p>Dinta Report Assistant dikembangkan dan dikelola oleh Anggi Waskitaning Bawono (selanjutnya “pengembang” atau “kami”) sebagai alat bantu bagi Tenaga Ahli untuk menyusun screenshot bukti kerja dan Log Aktivitas Harian. Aplikasi ini <b>bukan produk resmi</b> Google, Mekari/Talenta, maupun Slack.</p>
+<p>Kebijakan ini berlaku untuk aplikasi Dinta Report Assistant untuk macOS dan Windows serta situs ini. Beberapa fitur hanya ada di Mac; fitur tersebut ditandai <span class="tag">Mac</span>.</p>
+<p>Aplikasi ditujukan untuk akun kerja: login Google hanya diterima untuk akun domain <code>teknologi.belajar.id</code>. Akun Google lain ditolak dan tidak disimpan.</p>
+
+<h2 id="tabel">2. Ringkasan data per fitur</h2>
+<div class="scroll">
+<table class="tbl">
+  <thead><tr><th>Data</th><th>Untuk apa</th><th>Disimpan di</th><th>Dikirim ke</th></tr></thead>
+  <tbody>
+    <tr><td>Screenshot bukti kerja</td><td>Rename, laporan, unggah bukti</td><td>Salinan terkompresi di folder bulan pilihan Anda; file asli tidak diubah</td><td>Google Drive (folder pilihan Anda), hanya saat Anda menyinkronkan</td></tr>
+    <tr><td>Teks hasil OCR screenshot</td><td>Menyarankan nama aktivitas &amp; tanggal</td><td>Komputer Anda</td><td>Tidak dikirim</td></tr>
+    <tr><td>Nama aktivitas, tanggal, task, status</td><td>Menyusun Log Aktivitas Harian</td><td>Komputer Anda (riwayat &amp; file Excel lokal)</td><td>Google Sheet pilihan Anda, saat Anda menyinkronkan</td></tr>
+    <tr><td>Profil (nama, rumpun, level, squad, platform)</td><td>Mengisi kolom laporan &amp; nama folder</td><td>Komputer Anda</td><td>Ikut tertulis di nama folder/Sheet Google Anda</td></tr>
+    <tr><td>Pola nama yang dipelajari</td><td>Saran nama berikutnya</td><td>Komputer Anda</td><td>Tidak dikirim</td></tr>
+    <tr><td>Email akun Google &amp; token login</td><td>Menampilkan akun &amp; menghubungi Google</td><td>Keychain macOS / file terenkripsi DPAPI di Windows</td><td>Google; token identitas juga ke Layanan Data DINTA (§5)</td></tr>
+    <tr><td>Presensi, cuti, saldo cuti Talenta <span class="tag">Mac</span></td><td>Menampilkan presensi &amp; kekurangan absen</td><td>Komputer Anda; cookie sesi di Keychain</td><td>Hanya ke Talenta sendiri</td></tr>
+    <tr><td>Agenda kalender <span class="tag">Mac</span></td><td>Mencocokkan screenshot dengan meeting</td><td>Tidak disalin; dibaca langsung dari macOS</td><td>Tidak dikirim</td></tr>
+    <tr><td>Lokasi <span class="tag">Mac</span></td><td>Live Attendance Talenta</td><td>Tidak disimpan</td><td>Talenta, hanya saat Anda membuka Live Attendance</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="lokal">3. Data di komputer Anda</h2>
 <ul>
-  <li><b>Alamat email</b> akun Google Anda — hanya untuk menampilkan akun yang tersambung.</li>
-  <li><b>Akses <code>drive.file</code></b> — aplikasi hanya dapat mengakses folder dan Google Sheet yang Anda pilih sendiri melalui Google Picker, serta file yang dibuat aplikasi. Aplikasi memakai akses ini untuk: (1) mengunggah screenshot bukti kerja ke folder yang Anda pilih, dan (2) membaca serta menambahkan baris log aktivitas ke Google Sheet yang Anda pilih.</li>
-  <li>Token login disimpan di penyimpanan aman sistem operasi (Keychain macOS / penyimpanan kredensial Windows) dan hanya dipakai untuk menghubungi Google atas nama Anda.</li>
-  <li>Data Google <b>tidak dikirim ke pihak lain</b>, tidak dijual, tidak dipakai untuk iklan, dan tidak dipakai untuk melatih model AI.</li>
+  <li><b>Screenshot</b> yang Anda tambahkan. Aplikasi membuat <b>salinan terkompresi</b> (±1 MB) di folder bulan di dalam Folder Induk yang Anda pilih, lalu me-rename salinan itu sesuai format <code>MM-DD_Nama Aktivitas</code> <b>setelah Anda mengonfirmasi tiap file</b>. File asli Anda tidak diubah.</li>
+  <li><b>Teks di dalam screenshot</b> dibaca dengan OCR bawaan sistem operasi (tanpa internet) untuk menyarankan nama aktivitas dan tanggal. Bila terbaca <b>nomor HP</b>, aplikasi hanya menyimpan <i>jenis</i> temuannya (“nomor HP”) untuk memberi peringatan, bukan nomornya.</li>
+  <li><b>Nama aktivitas, tanggal, task, dan status kirim</b> — disimpan sebagai riwayat dan, bila Anda aktifkan, ditulis ke file Excel Log Aktivitas Harian di komputer Anda.</li>
+  <li><b>Profil</b> yang Anda isi atau pilih: nama, rumpun, level, squad, platform.</li>
+  <li><b>Pola nama</b> dari rename yang Anda konfirmasi (judul, kategori, kata kunci, jumlah pemakaian) agar saran berikutnya lebih tepat.</li>
+  <li><b>Pengaturan</b> aplikasi (folder pilihan, tautan Google Sheet, jadwal pengingat, tampilan).</li>
+  <li>Bila Google Drive for desktop terpasang, aplikasi <b>hanya membaca</b> daftar folder Google Drive di Finder/File Explorer untuk menemukan folder laporan Anda; aplikasi tidak mengubah apa pun di sana kecuali menyalin screenshot ke folder laporan yang Anda pilih.</li>
 </ul>
+<p>Lokasi folder data aplikasi:</p>
+<ul>
+  <li>macOS: <code>~/Library/Application Support/id.dinta.ReportAssistant/</code></li>
+  <li>Windows: <code>%LOCALAPPDATA%\Dinta Report Assistant\</code></li>
+</ul>
+
+<h2 id="google">4. Akun Google, Drive &amp; Sheets</h2>
+<p>Login Google bersifat opsional, tetapi diperlukan untuk sinkronisasi ke Drive/Sheet dan untuk mengambil daftar task. Aplikasi meminta izin (scope) berikut — tidak lebih:</p>
+<ul>
+  <li><b><code>openid</code> dan <code>email</code></b> — mengetahui alamat email akun Anda untuk menampilkan akun yang tersambung dan memastikan akun berasal dari domain kantor. Aplikasi tidak meminta nama, foto, atau kontak Anda.</li>
+  <li><b><code>drive.file</code></b> — aplikasi <b>hanya</b> dapat mengakses folder dan Google Sheet yang Anda pilih sendiri melalui Google Picker, serta file yang dibuat oleh aplikasi. Aplikasi <b>tidak dapat</b> melihat file Google Drive Anda yang lain.</li>
+</ul>
+<h3>Apa yang dilakukan aplikasi dengan akses ini</h3>
+<ul>
+  <li><b>Mengunggah</b> screenshot bukti kerja (yang sudah di-rename) ke folder Drive pilihan Anda.</li>
+  <li><b>Membaca</b> isi Google Sheet laporan pilihan Anda untuk mengetahui baris yang sudah ada, lalu <b>menambahkan/memperbarui</b> baris log aktivitas (tanggal, nama aktivitas, task, tautan bukti, dan kolom profil).</li>
+  <li>Membaca daftar task dari Google Sheet yang tautannya Anda masukkan di Pengaturan. Di Windows, Sheet yang dibagikan lewat tautan dapat dibaca tanpa login (format CSV hanya-baca).</li>
+  <li>Folder dan Sheet tersebut biasanya berada di Shared drive kantor; <b>orang lain yang memiliki akses ke folder itu (mis. admin/pengelola laporan) dapat melihat screenshot dan log yang Anda unggah</b>, sesuai pengaturan berbagi di Google Drive, bukan pengaturan aplikasi.</li>
+</ul>
+<h3>Token &amp; penyimpanan</h3>
+<ul>
+  <li>Login memakai OAuth 2.0 dengan PKCE di browser sistem; kata sandi Google Anda tidak pernah dilihat aplikasi.</li>
+  <li><b>Refresh token</b> disimpan di Keychain macOS, atau di Windows dalam file yang dienkripsi DPAPI (terkunci ke akun Windows Anda). Access token hanya disimpan di memori.</li>
+  <li>Saat Anda keluar dari akun Google di Pengaturan, token dicabut di Google dan dihapus dari komputer.</li>
+</ul>
+<h3>Kepatuhan terhadap kebijakan data pengguna Google</h3>
 <p>Penggunaan dan pemindahan informasi yang diterima dari Google API oleh aplikasi ini mematuhi
-<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, termasuk persyaratan <i>Limited Use</i>.</p>
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, termasuk persyaratan <i>Limited Use</i>. Secara khusus, data Google Anda:</p>
+<ul>
+  <li>hanya dipakai untuk menyediakan fitur yang terlihat di aplikasi dan dijelaskan di halaman ini;</li>
+  <li>tidak dipindahkan ke pihak lain, kecuali bila perlu untuk menjalankan fitur tersebut, untuk keamanan, atau bila diwajibkan hukum;</li>
+  <li>tidak dipakai untuk iklan, tidak dijual, dan tidak dipakai untuk menilai kelayakan kredit;</li>
+  <li>tidak dibaca oleh manusia, kecuali dengan persetujuan Anda (mis. Anda sendiri mengirim log diagnostik), untuk keamanan, atau bila diwajibkan hukum;</li>
+  <li>tidak dipakai untuk mengembangkan, meningkatkan, atau melatih model AI/ML umum.</li>
+</ul>
 
-<h2>Fitur AI di perangkat</h2>
-<p>Di Mac yang mendukung Apple Intelligence, saran nama aktivitas dapat dibuat oleh model bahasa yang berjalan <b>di perangkat</b>. Teks screenshot tidak dikirim ke internet untuk fitur ini.</p>
+<h2 id="layanan">5. Layanan Data DINTA</h2>
+<p>Daftar task (dari file master task terbaru) dan daftar Tenaga Ahli tidak dibundel di dalam aplikasi; keduanya diambil dari <b>Layanan Data DINTA</b>, yaitu layanan kecil milik pengembang yang berjalan di Cloudflare Workers dan diisi otomatis dari Google Apps Script milik admin.</p>
+<ul>
+  <li><b>Yang dikirim aplikasi:</b> <i>ID token</i> Google Anda (berisi alamat email, ID akun Google, dan masa berlaku) agar layanan dapat memastikan Anda memakai akun <code>teknologi.belajar.id</code>. Di versi macOS saat ini, token akses login juga ikut terkirim di header permintaan; layanan tidak memakai maupun menyimpannya.</li>
+  <li><b>Yang diterima aplikasi:</b> daftar task, serta daftar Tenaga Ahli berisi nama, rumpun, level, kategori, platform, dan squad (<b>tanpa email</b>) untuk membantu Anda mengisi profil.</li>
+  <li><b>Yang disimpan layanan:</b> hanya salinan daftar task dan daftar Tenaga Ahli. Layanan <b>tidak menyimpan</b> token, email, atau data aktivitas Anda. Sebagai penyedia infrastruktur, Cloudflare dapat mencatat data teknis permintaan (mis. alamat IP dan waktu) sesuai kebijakannya.</li>
+  <li>Aplikasi Windows saat ini tidak memakai layanan ini.</li>
+</ul>
 
-<h2>Mencabut akses</h2>
-<p>Anda dapat keluar dari akun Google di Pengaturan aplikasi kapan saja, atau mencabut akses melalui
-<a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</p>
+<h2 id="talenta">6. Talenta (presensi &amp; cuti) <span class="tag">Mac</span></h2>
+<p>Bila Anda menyambungkan Talenta (Mekari), Anda login sendiri di jendela Talenta di dalam aplikasi.</p>
+<ul>
+  <li>Aplikasi <b>tidak pernah melihat atau menyimpan kata sandi</b> Talenta Anda.</li>
+  <li>Agar tetap login setelah aplikasi ditutup, <b>cookie sesi</b> khusus domain <code>talenta.co</code>/<code>mekari.com</code> disimpan di Keychain macOS dan tidak dipulihkan bila lebih dari 7 hari. “Putuskan” menghapusnya.</li>
+  <li>Aplikasi membaca dari Talenta: ID karyawan, nama perusahaan, jadwal &amp; jam clock-in/clock-out, kode kehadiran, cuti yang diambil, saldo cuti, dan status pengajuan koreksi absen. Data ini disimpan di komputer Anda untuk menampilkan presensi, menandai hari yang belum lengkap, dan memberi pengingat.</li>
+  <li>Pengajuan cuti/koreksi absen tetap Anda lakukan sendiri di halaman Talenta. Data Talenta <b>tidak dikirim</b> ke Google, ke pengembang, atau ke pihak lain.</li>
+  <li>Catatan teknis sinkronisasi (<code>talenta-sync.log</code>) disimpan di folder data aplikasi untuk membantu memecahkan masalah.</li>
+</ul>
 
-<h2>Kontak</h2>
-<p>Pertanyaan tentang privasi: <a href="mailto:anggi.bawono@me.com">anggi.bawono@me.com</a></p>
+<h2 id="kalender">7. Kalender <span class="tag">Mac</span></h2>
+<p>Dengan izin Anda, aplikasi <b>membaca</b> agenda dari kalender yang Anda pilih di macOS (mis. akun Google di Internet Accounts) untuk mencocokkan jam screenshot dengan meeting dan memakai judul meeting sebagai saran nama aktivitas. Aplikasi tidak membuat, mengubah, atau menghapus event, dan tidak mengirim agenda ke mana pun. Izin dapat dicabut di Pengaturan Sistem › Privasi &amp; Keamanan › Kalender.</p>
+
+<h2 id="lokasi">8. Lokasi <span class="tag">Mac</span></h2>
+<p>Lokasi hanya diminta saat Anda membuka <b>Live Attendance</b> Talenta di dalam aplikasi, dan diberikan ke halaman Talenta agar Talenta dapat mencatat clock-in/clock-out Anda — sama seperti membuka Talenta di browser. Aplikasi tidak menyimpan lokasi. Izin dapat dicabut di Pengaturan Sistem › Privasi &amp; Keamanan › Layanan Lokasi.</p>
+
+<h2 id="ai">9. Fitur AI di perangkat <span class="tag">Mac</span></h2>
+<p>Di Mac dengan macOS 26 atau lebih baru dan Apple Intelligence aktif, saran nama aktivitas dapat dipertajam oleh model bahasa Apple yang berjalan <b>sepenuhnya di perangkat</b>. Teks screenshot tidak dikirim ke internet atau ke penyedia AI mana pun. Bila Apple Intelligence tidak tersedia, aplikasi memakai kamus dan riwayat lokal saja. Aplikasi Windows tidak memakai AI.</p>
+
+<h2 id="update">10. Pemeriksaan pembaruan <span class="tag">Mac</span></h2>
+<p>Aplikasi memeriksa versi terbaru ke GitHub (<code>api.github.com</code>) dan mengunduh pembaruan dari GitHub bila Anda setuju. Permintaan ini tidak membawa identitas atau data Anda; seperti setiap koneksi internet, GitHub dapat melihat alamat IP dan jenis aplikasi.</p>
+
+<h2 id="diagnostik">11. Log diagnostik</h2>
+<p>Menu “Kirim Log Diagnostik” membuat file .zip di komputer Anda berisi versi aplikasi, status izin, pengaturan, jumlah aktivitas per status, dan log teknis. File ini <b>tidak berisi</b> screenshot, cookie, token, data presensi, atau daftar aktivitas; alamat email dan angka panjang (mis. ID karyawan) disamarkan. File <b>tidak dikirim otomatis</b> — hanya Anda yang memutuskan untuk mengirimkannya ke pengembang.</p>
+
+<h2 id="tidak">12. Yang tidak kami lakukan</h2>
+<ul>
+  <li>Tidak ada analitik, telemetri, pelacak, atau pelaporan crash otomatis.</li>
+  <li>Tidak ada iklan dan tidak ada penjualan atau penyewaan data.</li>
+  <li>Tidak ada pengiriman screenshot atau teks OCR ke server pengembang atau penyedia AI.</li>
+  <li>Tidak ada pengiriman otomatis tanpa tindakan Anda: rename dikonfirmasi per file, dan jenis aktivitas serta pengiriman laporan tetap Anda pilih sendiri.</li>
+</ul>
+
+<h2 id="pihak">13. Pihak ketiga</h2>
+<p>Data yang Anda kirim ke layanan berikut juga diatur oleh kebijakan privasi masing-masing:</p>
+<ul>
+  <li>Google (Drive, Sheets, login, Picker) — <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></li>
+  <li>Mekari Talenta — <a href="https://www.talenta.co/kebijakan-privasi/">talenta.co</a></li>
+  <li>Cloudflare (Layanan Data DINTA) — <a href="https://www.cloudflare.com/privacypolicy/">cloudflare.com/privacypolicy</a></li>
+  <li>GitHub (pembaruan aplikasi &amp; situs ini) — <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a></li>
+  <li>Apple (OCR, Kalender, Apple Intelligence di perangkat) — <a href="https://www.apple.com/legal/privacy/">apple.com/legal/privacy</a></li>
+</ul>
+<p>Situs ini adalah halaman statis di GitHub Pages tanpa cookie, formulir, atau skrip analitik.</p>
+
+<h2 id="hapus">14. Penyimpanan &amp; penghapusan</h2>
+<p>Data lokal disimpan selama aplikasi terpasang dan tidak dihapus otomatis, agar riwayat laporan bulanan tetap ada. Cara menghapus:</p>
+<ul>
+  <li><b>Google:</b> keluar di Pengaturan aplikasi (token dicabut &amp; dihapus), atau cabut akses di <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>. File yang sudah diunggah ke Drive/Sheet tetap ada di Drive dan dikelola dari Google Drive.</li>
+  <li><b>Talenta:</b> tekan “Putuskan” di aplikasi untuk menghapus cookie sesi.</li>
+  <li><b>Kalender &amp; Lokasi:</b> cabut izin di Pengaturan Sistem macOS.</li>
+  <li><b>Semua data aplikasi:</b> tutup aplikasi lalu hapus folder data di atas (§3); di macOS, hapus juga entri “Dinta”/“id.dinta.ReportAssistant” di aplikasi Keychain Access. Salinan screenshot di Folder Induk adalah file Anda dan dapat dihapus seperti file biasa.</li>
+</ul>
+
+<h2 id="keamanan">15. Keamanan</h2>
+<ul>
+  <li>Semua koneksi ke Google, Talenta, Layanan Data DINTA, dan GitHub memakai HTTPS.</li>
+  <li>Token dan cookie disimpan di penyimpanan aman sistem operasi (Keychain / DPAPI), bukan di file biasa.</li>
+  <li>Layanan Data DINTA memverifikasi tanda tangan ID token Google dan hanya melayani akun domain kantor; aplikasi tidak memuat kunci rahasia layanan.</li>
+  <li>Aplikasi Mac ditandatangani kode (code-signed) dengan Hardened Runtime.</li>
+</ul>
+<p>Tidak ada sistem yang sepenuhnya aman. Bila kami mengetahui insiden yang memengaruhi data Anda, kami akan memberi tahu pengguna yang terdampak secepatnya.</p>
+
+<h2 id="hak">16. Hak Anda</h2>
+<p>Sesuai Undang-Undang No. 27 Tahun 2022 tentang Pelindungan Data Pribadi, Anda berhak memperoleh informasi, mengakses, memperbaiki, menghapus, menarik persetujuan, dan mengajukan keberatan atas pemrosesan data pribadi Anda. Karena hampir semua data ada di komputer Anda, sebagian besar hak ini dapat Anda jalankan langsung di aplikasi (§14). Untuk hal lain — termasuk data Anda di daftar Tenaga Ahli Layanan Data DINTA — hubungi kami (§18).</p>
+<p>Aplikasi ditujukan untuk tenaga kerja dewasa dan tidak ditujukan untuk anak di bawah 18 tahun.</p>
+
+<h2 id="perubahan">17. Perubahan kebijakan</h2>
+<p>Bila fitur aplikasi mengubah cara data diproses, halaman ini diperbarui dan tanggal berlakunya diganti. Perubahan penting juga diumumkan di catatan rilis aplikasi.</p>
+<ul class="muted">
+  <li>29 Oktober 2026 — dirinci: tabel data per fitur, Layanan Data DINTA, Talenta, Kalender, Lokasi, pembaruan, log diagnostik, pihak ketiga, penghapusan, keamanan, dan hak pengguna.</li>
+  <li>22 Oktober 2026 — versi pertama.</li>
+</ul>
+
+<h2 id="kontak">18. Kontak</h2>
+<p>Pertanyaan atau permintaan terkait privasi: <a href="mailto:anggi.bawono@me.com">anggi.bawono@me.com</a>. Kami berusaha menjawab dalam 14 hari kerja.</p>
 
 <footer><a href="./">Kembali ke Beranda</a></footer>
 </main></body>
