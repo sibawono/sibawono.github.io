@@ -636,10 +636,11 @@ final class ScreenKeeper {
         }
         if travelScreens().isEmpty {
             klog("[\(reason)] no \(SCREEN_NAME) -> creating")
-            // 15:11 matches the iPad's native 1920x1408; a 16:9 screen letterboxes on it.
+            // 4:3 matches the 13-inch iPad Air's 2732x2048 panel; a 16:9 screen letterboxes
+            // on it. (Upstream used 15:11 for a smaller iPad.)
             bd("create --type=VirtualScreen --virtualScreenName=\(SCREEN_NAME) "
-               + "--aspectWidth=15 --aspectHeight=11 --useResolutionList=on "
-               + "--resolutionList=1920x1408,1440x1056,1020x748")
+               + "--aspectWidth=4 --aspectHeight=3 --useResolutionList=on "
+               + "--resolutionList=2732x2048,2048x1536,1366x1024")
             Thread.sleep(forTimeInterval: 5)
         }
         if !travelScreenAttached() {
