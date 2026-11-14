@@ -182,8 +182,8 @@ func installTrigger() -> String {
     state() { /usr/bin/osascript -l JavaScript "$DIR/ctl.js" list 2>/dev/null; }
     # Fixed-string match on the quoted name, so regex characters in the iPad's name and
     # a second connected device cannot break the check.
-    is_connected() { echo "$1" | sed 's/.*connected=//' | grep -qF "\"$DEV\""; }
-    is_listed() { echo "$1" | sed 's/ connected=.*//' | grep -qF "\"$DEV\""; }
+    is_connected() { echo "$1" | sed 's/.*connected=//' | grep -qF "\\"$DEV\\""; }
+    is_listed() { echo "$1" | sed 's/ connected=.*//' | grep -qF "\\"$DEV\\""; }
     elapsed() { echo $(( $(date +%s) - START )); }
 
     S=$(state)
@@ -420,6 +420,7 @@ final class ConnectionKeeper {
     private var backoff: TimeInterval = 5
     private var attempts = 0
     private var wasConnected = false
+    private var displayFixed = false                     // fixup has run against a live Sidecar display
     private var notedMissing = false
     private var missingSince: Date?
     private var lastList = Date.distantPast
@@ -452,7 +453,9 @@ final class ConnectionKeeper {
     // Something changed that makes a connect likely to succeed now: forget the backoff.
     func kick(_ reason: String) {
         q.async { [weak self] in
-            guard let self = self else { return }
+            // Only the instance that holds the lock acts; the other one's kick is a no-op
+            // and the owner picks the change up on its next tick.
+            guard let self = self, self.timer != nil else { return }
             self.backoff = 5; self.lastAttempt = .distantPast
             self.lastList = .distantPast; self.missingSince = nil
             self.tick(reason)
@@ -470,39 +473,63 @@ final class ConnectionKeeper {
         }
     }
 
+    private func markConnected(_ reason: String, via: String) {
+        guard !wasConnected else { return }
+        wasConnected = true
+        clog("connected (\(reason), seen via \(via), \(attempts) attempt(s))")
+        backoff = 5; attempts = 0; notedMissing = false; missingSince = nil
+    }
+
+    // The device list can report the session before its display is online, and the fixup
+    // can only move a display that exists. So it runs when the session is first seen and
+    // once more when the display itself first shows up.
+    private func fixup(displayOnline: Bool) {
+        Thread.sleep(forTimeInterval: 2)                     // let the new display settle
+        runFixup()
+        if displayOnline { displayFixed = true }
+    }
+
     private func tick(_ reason: String) {
         holdAwake(armed)
         guard armed else { return }
         let dev = savedDevice()
         guard !dev.isEmpty else { return }
+        let now = Date()
 
+        // Cheap path: a Sidecar display is online. No process spawned.
         if sidecarDisplay() != nil {
-            if !wasConnected {
-                wasConnected = true
-                clog("connected (\(reason), \(attempts) attempt(s))")
-                backoff = 5; attempts = 0; notedMissing = false; missingSince = nil
-                Thread.sleep(forTimeInterval: 2)             // let the new display settle
-                runFixup()
-            }
+            markConnected(reason, via: "display")
+            if !displayFixed { fixup(displayOnline: true) }
             return
         }
+
+        // No Sidecar display by vendor id. Ask SidecarCore, which spawns osascript, so
+        // rate-limit it: every tick while we are actively trying, every 15s when the answer
+        // is unlikely to change soon (paused, iPad missing for over a minute, or a session
+        // that only the device list can see).
+        let missingLong = missingSince.map { now.timeIntervalSince($0) > 60 } ?? false
+        let interval: TimeInterval = (paused || missingLong || wasConnected) ? 15 : 5
+        guard now.timeIntervalSince(lastList) >= interval - 1 else { return }
+        lastList = now
+        let l = parseList()
+
+        // The vendor id is an assumption about how Sidecar displays identify themselves. If
+        // it ever stops holding, the device list still knows the session is up; without
+        // this the keeper would neither log the connect nor run the fixup.
+        if l.connected.contains(dev) {
+            if !wasConnected { markConnected(reason, via: "device list"); fixup(displayOnline: false) }
+            return
+        }
+
+        displayFixed = false
         if wasConnected {
             wasConnected = false
-            clog("Sidecar display gone -> reconnecting")
+            clog("Sidecar session gone -> reconnecting")
             lastAttempt = .distantPast; backoff = 5
         }
         // Checked only after the bookkeeping above, so a manual disconnect still registers
         // as "gone" and the next connect gets its log line and fixup.
         guard !paused else { return }
-        guard Date().timeIntervalSince(lastAttempt) >= backoff else { return }
-        // Listing spawns osascript. An iPad that has been missing for over a minute (locked
-        // overnight, left at home) is polled every 15s instead of every tick.
-        if let m = missingSince, Date().timeIntervalSince(m) > 60,
-           Date().timeIntervalSince(lastList) < 15 { return }
-        lastList = Date()
-
-        let l = parseList()
-        if l.connected.contains(dev) { return }              // session up, display still arriving
         guard l.all.contains(dev) else {
             // Locked, not trusted yet, or the Mac is still booting. Connecting now is
             // pointless; keep looking until it shows up.
@@ -510,10 +537,11 @@ final class ConnectionKeeper {
                 notedMissing = true
                 clog("\(dev) not in Sidecar device list \(l.all) -> waiting")
             }
-            if missingSince == nil { missingSince = Date() }
+            if missingSince == nil { missingSince = now }
             return
         }
         notedMissing = false; missingSince = nil
+        guard now.timeIntervalSince(lastAttempt) >= backoff else { return }
         attempts += 1
         clog("[\(reason)] connect #\(attempts) -> \(dev)")
         _ = ctl(["connect", dev])
