@@ -9,6 +9,8 @@
 "autologin.subtitle" = "Logs in without a screen after power-on";
 "armed.title" = "Sidecar on plug";
 "armed.subtitle" = "Connects automatically when you plug in the iPad";
+"main.title" = "iPad as main display";
+"main.subtitle" = "Menu bar and new windows go to the iPad, even with a dummy plug or virtual screen attached";
 "keep.title" = "Keep a screen when headless";
 "keep.subtitle" = "Holds a virtual display so screen sharing isn't black. Idle while a monitor is plugged in.";
 "keep.needsBD" = "Needs BetterDisplay — install it, then switch this on.";

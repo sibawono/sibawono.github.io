@@ -9,6 +9,8 @@
 "autologin.subtitle" = "Diže sesiju bez ekrana posle paljenja";
 "armed.title" = "Sidecar na kabl";
 "armed.subtitle" = "Čim ukucaš iPad — sam se zakači kao ekran";
+"main.title" = "iPad kao glavni ekran";
+"main.subtitle" = "Traka menija i novi prozori idu na iPad, čak i uz lažni HDMI adapter ili virtuelni ekran";
 "keep.title" = "Drži ekran kad nema monitora";
 "keep.subtitle" = "Drži virtuelni ekran da VNC ne bude crn. Miruje dok je monitor u HDMI.";
 "keep.needsBD" = "Traži BetterDisplay — instaliraj ga, pa uključi ovo.";

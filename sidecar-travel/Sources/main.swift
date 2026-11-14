@@ -26,6 +26,7 @@ let PLUG_INSTALLED = SUPPORT + "/on-plug.sh"
 let PLUG_LOG = SUPPORT + "/plug.log"
 let PAUSED = SUPPORT + "/paused"                        // manual disconnect: keeper stands back
 let KEEPER_LOCK = SUPPORT + "/keeper.lock"              // only one process runs the connection keeper
+let IPAD_MAIN = SUPPORT + "/ipadmain"                   // always make the iPad the main display
 
 func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
 
@@ -105,6 +106,7 @@ struct AppState {
     var physicalCount = 0
     var screenAttached = false
     var loginAgent = false
+    var ipadMain = false
     var ipadConnected: Bool { !device.isEmpty && connected.contains(device) }
     var ipadVisible: Bool { !device.isEmpty && devices.contains(device) }
 }
@@ -123,6 +125,7 @@ func readState() -> AppState {
     s.physicalCount = s.bdAvailable ? physicalDisplayCount() : onlineDisplays().count
     s.screenAttached = s.bdAvailable && travelScreenAttached()
     s.loginAgent = loginAgentInstalled()
+    s.ipadMain = ipadMainForced()
     return s
 }
 
@@ -370,11 +373,17 @@ func sidecarDisplay() -> CGDirectDisplayID? {
 // Headless with a virtual screen attached, macOS keeps the virtual screen as the main
 // display: the menu bar and new windows land where nobody can see them. The main display
 // is whichever one sits at the origin, so shift the whole arrangement until that is the
-// iPad. Left alone when a real monitor is present, or when the iPad is the only display.
+// iPad. Nothing to do when the iPad is the only display.
+//
+// An HDMI dummy plug is indistinguishable from a real monitor, so "no physical display"
+// cannot be the only rule: with the "iPad as main display" switch on we always do it.
+// Without the switch we only step in when every other display is a virtual screen.
+func ipadMainForced() -> Bool { FileManager.default.fileExists(atPath: IPAD_MAIN) }
+
 func makeSidecarMain() {
     let ids = onlineDisplays()
     guard ids.count >= 2, let sc = sidecarDisplay(), CGMainDisplayID() != sc,
-          physicalDisplayCount() == 0 else { return }
+          ipadMainForced() || physicalDisplayCount() == 0 else { return }
     let o = CGDisplayBounds(sc).origin
     var cfg: CGDisplayConfigRef?
     CGBeginDisplayConfiguration(&cfg)
@@ -412,6 +421,8 @@ final class ConnectionKeeper {
     private var attempts = 0
     private var wasConnected = false
     private var notedMissing = false
+    private var missingSince: Date?
+    private var lastList = Date.distantPast
     private var awake: NSObjectProtocol?
 
     var armed: Bool { FileManager.default.fileExists(atPath: ARMED) }
@@ -443,6 +454,7 @@ final class ConnectionKeeper {
         q.async { [weak self] in
             guard let self = self else { return }
             self.backoff = 5; self.lastAttempt = .distantPast
+            self.lastList = .distantPast; self.missingSince = nil
             self.tick(reason)
         }
     }
@@ -460,7 +472,7 @@ final class ConnectionKeeper {
 
     private func tick(_ reason: String) {
         holdAwake(armed)
-        guard armed, !paused else { return }
+        guard armed else { return }
         let dev = savedDevice()
         guard !dev.isEmpty else { return }
 
@@ -468,7 +480,7 @@ final class ConnectionKeeper {
             if !wasConnected {
                 wasConnected = true
                 clog("connected (\(reason), \(attempts) attempt(s))")
-                backoff = 5; attempts = 0; notedMissing = false
+                backoff = 5; attempts = 0; notedMissing = false; missingSince = nil
                 Thread.sleep(forTimeInterval: 2)             // let the new display settle
                 runFixup()
             }
@@ -479,7 +491,15 @@ final class ConnectionKeeper {
             clog("Sidecar display gone -> reconnecting")
             lastAttempt = .distantPast; backoff = 5
         }
+        // Checked only after the bookkeeping above, so a manual disconnect still registers
+        // as "gone" and the next connect gets its log line and fixup.
+        guard !paused else { return }
         guard Date().timeIntervalSince(lastAttempt) >= backoff else { return }
+        // Listing spawns osascript. An iPad that has been missing for over a minute (locked
+        // overnight, left at home) is polled every 15s instead of every tick.
+        if let m = missingSince, Date().timeIntervalSince(m) > 60,
+           Date().timeIntervalSince(lastList) < 15 { return }
+        lastList = Date()
 
         let l = parseList()
         if l.connected.contains(dev) { return }              // session up, display still arriving
@@ -490,9 +510,10 @@ final class ConnectionKeeper {
                 notedMissing = true
                 clog("\(dev) not in Sidecar device list \(l.all) -> waiting")
             }
+            if missingSince == nil { missingSince = Date() }
             return
         }
-        notedMissing = false
+        notedMissing = false; missingSince = nil
         attempts += 1
         clog("[\(reason)] connect #\(attempts) -> \(dev)")
         _ = ctl(["connect", dev])
@@ -719,6 +740,22 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(L("armed.title")).font(.system(size: 13, weight: .medium))
                     Text(L("armed.subtitle")).font(.system(size: 10)).foregroundColor(.secondary)
+                }
+            }.toggleStyle(.switch)
+
+            Toggle(isOn: Binding(get: { st.ipadMain }, set: { v in
+                ensureSupportDir()
+                if v {
+                    FileManager.default.createFile(atPath: IPAD_MAIN, contents: nil)
+                    DispatchQueue.global().async { makeSidecarMain() }
+                } else {
+                    try? FileManager.default.removeItem(atPath: IPAD_MAIN)
+                }
+                refresh()
+            })) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(L("main.title")).font(.system(size: 13, weight: .medium))
+                    Text(L("main.subtitle")).font(.system(size: 10)).foregroundColor(.secondary)
                 }
             }.toggleStyle(.switch)
 
