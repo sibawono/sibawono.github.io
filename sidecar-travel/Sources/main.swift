@@ -23,6 +23,9 @@ let FIXUP_FLAG = "--fixup"                              // post-connect: break m
 let CTL_BUNDLE = Bundle.main.path(forResource: "ctl", ofType: "js") ?? ""
 let CTL_INSTALLED = SUPPORT + "/ctl.js"
 let PLUG_INSTALLED = SUPPORT + "/on-plug.sh"
+let PLUG_LOG = SUPPORT + "/plug.log"
+let PAUSED = SUPPORT + "/paused"                        // manual disconnect: keeper stands back
+let KEEPER_LOCK = SUPPORT + "/keeper.lock"              // only one process runs the connection keeper
 
 func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
 
@@ -41,8 +44,20 @@ func osaAdmin(_ inner: String) -> String {
     return sh("/usr/bin/osascript -e 'do shell script \"\(esc)\" with administrator privileges'")
 }
 
-func ctl(_ args: String) -> String {
-    sh("/usr/bin/osascript -l JavaScript '\(CTL_BUNDLE)' \(args) 2>/dev/null")
+// Runs a tool directly: no login shell to start up, and no quoting to get wrong when an
+// argument (an iPad name like "Bawono's iPad") contains quotes or spaces.
+@discardableResult
+func run(_ tool: String, _ args: [String]) -> String {
+    let p = Process(); p.executableURL = URL(fileURLWithPath: tool); p.arguments = args
+    let pipe = Pipe(); p.standardOutput = pipe; p.standardError = FileHandle.nullDevice
+    do { try p.run() } catch { return "" }
+    let d = pipe.fileHandleForReading.readDataToEndOfFile()
+    p.waitUntilExit()
+    return String(data: d, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+}
+
+func ctl(_ args: [String]) -> String {
+    run("/usr/bin/osascript", ["-l", "JavaScript", CTL_BUNDLE] + args)
 }
 
 func ensureSupportDir() { try? FileManager.default.createDirectory(atPath: SUPPORT, withIntermediateDirectories: true) }
@@ -50,7 +65,7 @@ func ensureSupportDir() { try? FileManager.default.createDirectory(atPath: SUPPO
 // MARK: - Sidecar device list parsing
 // ctl.js list -> devices=["A","B"] connected=["A"]
 func parseList() -> (all: [String], connected: [String]) {
-    let s = ctl("list")
+    let s = ctl(["list"])
     func arr(_ field: String) -> [String] {
         guard let r = s.range(of: "\(field)=", options: []) else { return [] }
         let tail = String(s[r.upperBound...])
@@ -115,17 +130,26 @@ func readState() -> AppState {
 // Detect the connected iPad's USB product id so the IOKit match is precise;
 // fall back to vendor-only matching (still safe: on-plug.sh guards on device name + armed flag).
 func detectIPadProductID() -> Int? {
+    // Preferred: the IOKit registry. Each "+-o" node carries its own property block, so the
+    // idProduct we read always belongs to the node whose name says iPad.
+    let reg = sh("/usr/sbin/ioreg -r -c IOUSBHostDevice -l -w0 2>/dev/null")
+    for node in reg.components(separatedBy: "+-o ") where node.lowercased().contains("ipad") {
+        guard let r = node.range(of: "\"idProduct\" = ") else { continue }
+        let digits = node[r.upperBound...].prefix { $0.isNumber }
+        if let v = Int(digits) { return v }
+    }
+    // Fallback: system_profiler. The device name is a header line that comes BEFORE its
+    // Product ID, so remember that we are inside an iPad entry and take the next id.
     let out = sh("/usr/sbin/system_profiler SPUSBDataType 2>/dev/null")
-    // crude scan: find an entry that looks like an iPad with a Product ID
-    let lines = out.components(separatedBy: "\n")
-    var lastPID: Int? = nil
-    for line in lines {
+    var inIPad = false
+    for line in out.components(separatedBy: "\n") {
         let t = line.trimmingCharacters(in: .whitespaces)
-        if t.hasPrefix("Product ID:") {
-            let hex = t.replacingOccurrences(of: "Product ID:", with: "").trimmingCharacters(in: .whitespaces)
-            if hex.hasPrefix("0x"), let v = Int(hex.dropFirst(2), radix: 16) { lastPID = v }
+        if t.hasSuffix(":") { inIPad = t.lowercased().contains("ipad"); continue }
+        if inIPad, t.hasPrefix("Product ID:") {
+            let hex = t.replacingOccurrences(of: "Product ID:", with: "")
+                .trimmingCharacters(in: .whitespaces).components(separatedBy: " ")[0]
+            if hex.hasPrefix("0x"), let v = Int(hex.dropFirst(2), radix: 16) { return v }
         }
-        if t.lowercased().contains("ipad"), let pid = lastPID { return pid }
     }
     return nil
 }
@@ -144,18 +168,47 @@ func installTrigger() -> String {
     [ -z "$DEV" ] && exit 0
     LOG="$DIR/plug.log"
     FIXUP="\(exe)"
+    log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
+    # Plugging the cable in is the "I want my screen back" gesture: lift a manual pause.
+    rm -f "$DIR/paused"
+    # When the app is running its connection keeper owns the connect; two senders would
+    # only get in each other's way. This script is the fallback for when it is not.
+    /usr/bin/pgrep -x SidecarTravel >/dev/null && exit 0
     # After connect: break the mirror Sidecar tends to set up and pin the iPad to 960x704.
     fixup() { [ -x "$FIXUP" ] && "$FIXUP" \(FIXUP_FLAG) >> "$LOG" 2>&1; }
-    if /usr/bin/osascript -l JavaScript "$DIR/ctl.js" list 2>/dev/null | grep -q "connected=\\[\\"$DEV\\"\\]"; then fixup; exit 0; fi
-    echo "$(date '+%F %T') iPad plugged -> connecting" >> "$LOG"
-    for i in $(seq 1 30); do
-      if /usr/bin/osascript -l JavaScript "$DIR/ctl.js" list 2>/dev/null | grep -q "connected=\\[\\"$DEV\\"\\]"; then
-        echo "  connected (try $i)" >> "$LOG"; sleep 1; fixup; exit 0
+    state() { /usr/bin/osascript -l JavaScript "$DIR/ctl.js" list 2>/dev/null; }
+    # Fixed-string match on the quoted name, so regex characters in the iPad's name and
+    # a second connected device cannot break the check.
+    is_connected() { echo "$1" | sed 's/.*connected=//' | grep -qF "\"$DEV\""; }
+    is_listed() { echo "$1" | sed 's/ connected=.*//' | grep -qF "\"$DEV\""; }
+    elapsed() { echo $(( $(date +%s) - START )); }
+
+    S=$(state)
+    if is_connected "$S"; then fixup; exit 0; fi
+    log "iPad plugged -> connecting to $DEV"
+    START=$(date +%s); SENT=0; WAIT=4; NOTED=0
+    while [ "$(elapsed)" -lt 180 ]; do
+      S=$(state)
+      if is_connected "$S"; then
+        log "  connected after $(elapsed)s, $SENT attempt(s)"; sleep 1; fixup; exit 0
+      fi
+      # Right after boot or while the iPad is locked/untrusted Sidecar does not list it yet.
+      # Sending connect then is pointless: wait for it to show up instead.
+      if ! is_listed "$S"; then
+        if [ "$NOTED" = 0 ]; then log "  $DEV not in Sidecar device list yet -> waiting ($S)"; NOTED=1; fi
+        sleep 3; continue
       fi
       /usr/bin/osascript -l JavaScript "$DIR/ctl.js" connect "$DEV" >/dev/null 2>&1
-      sleep 2
+      SENT=$((SENT+1))
+      # Let the handshake finish before asking again; back off 4s -> 8s -> 16s.
+      T=0
+      while [ "$T" -lt "$WAIT" ]; do
+        sleep 2; T=$((T+2))
+        if is_connected "$(state)"; then break; fi
+      done
+      [ "$WAIT" -lt 16 ] && WAIT=$((WAIT*2))
     done
-    echo "  gave up after 60s" >> "$LOG"
+    log "  gave up after $(elapsed)s, $SENT attempt(s), last state: $S"
     """
     try? plug.write(toFile: PLUG_INSTALLED, atomically: true, encoding: .utf8)
     sh("/bin/chmod +x '\(PLUG_INSTALLED)'")
@@ -216,16 +269,18 @@ let SIDECAR_VENDOR: UInt32 = 1633775724                 // 'aapl' — Sidecar/Ai
 
 func bdPath() -> String? { BD_CANDIDATES.first { FileManager.default.isExecutableFile(atPath: $0) } }
 
-func klog(_ msg: String) {
+func logTo(_ path: String, _ msg: String) {
     let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd HH:mm:ss"
     let line = "\(df.string(from: Date())) \(msg)\n"
     ensureSupportDir()
-    if let h = FileHandle(forWritingAtPath: KEEP_LOG) {
+    if let h = FileHandle(forWritingAtPath: path) {
         h.seekToEndOfFile(); h.write(line.data(using: .utf8)!); try? h.close()
     } else {
-        try? line.write(toFile: KEEP_LOG, atomically: true, encoding: .utf8)
+        try? line.write(toFile: path, atomically: true, encoding: .utf8)
     }
 }
+func klog(_ msg: String) { logTo(KEEP_LOG, msg) }
+func clog(_ msg: String) { logTo(PLUG_LOG, msg) }
 
 @discardableResult
 func bd(_ args: String) -> String {
@@ -308,10 +363,142 @@ func pinSidecarResolution() {
     }
 }
 
-// Runs on `--fixup`, invoked by on-plug.sh right after a Sidecar connect.
+func sidecarDisplay() -> CGDirectDisplayID? {
+    onlineDisplays().first { CGDisplayVendorNumber($0) == SIDECAR_VENDOR }
+}
+
+// Headless with a virtual screen attached, macOS keeps the virtual screen as the main
+// display: the menu bar and new windows land where nobody can see them. The main display
+// is whichever one sits at the origin, so shift the whole arrangement until that is the
+// iPad. Left alone when a real monitor is present, or when the iPad is the only display.
+func makeSidecarMain() {
+    let ids = onlineDisplays()
+    guard ids.count >= 2, let sc = sidecarDisplay(), CGMainDisplayID() != sc,
+          physicalDisplayCount() == 0 else { return }
+    let o = CGDisplayBounds(sc).origin
+    var cfg: CGDisplayConfigRef?
+    CGBeginDisplayConfiguration(&cfg)
+    for id in ids {
+        let b = CGDisplayBounds(id).origin
+        CGConfigureDisplayOrigin(cfg, id, Int32(b.x - o.x), Int32(b.y - o.y))
+    }
+    let err = CGCompleteDisplayConfiguration(cfg, .permanently)
+    klog("made Sidecar the main display (err=\(err.rawValue))")
+}
+
+// Runs after every Sidecar connect: from the connection keeper, or on `--fixup` from
+// on-plug.sh when the app itself is not running.
 func runFixup() {
     breakMirror()
     pinSidecarResolution()
+    makeSidecarMain()
+}
+
+// MARK: - Connection keeper
+//
+// The launchd USB trigger only fires on plug-in. With the iPad as the Mac's only display
+// that is not enough: after a wake, a dropped session or a slow boot nothing would bring
+// the picture back, and there is no screen left to fix it from. This keeper owns the
+// connection for as long as the app runs: every few seconds it checks whether a Sidecar
+// display is online (a CoreGraphics call, no process spawned) and only when it is not does
+// it ask SidecarCore for the device list and send a connect, backing off between attempts.
+final class ConnectionKeeper {
+    static let shared = ConnectionKeeper()
+    private let q = DispatchQueue(label: "io.github.sidecartravel.connect")
+    private var timer: DispatchSourceTimer?
+    private var lockFD: Int32 = -1
+    private var lastAttempt = Date.distantPast
+    private var backoff: TimeInterval = 5
+    private var attempts = 0
+    private var wasConnected = false
+    private var notedMissing = false
+    private var awake: NSObjectProtocol?
+
+    var armed: Bool { FileManager.default.fileExists(atPath: ARMED) }
+    var paused: Bool { FileManager.default.fileExists(atPath: PAUSED) }
+
+    func start() {
+        guard timer == nil else { return }
+        ensureSupportDir()
+        // The window instance and the --background instance can both be alive; two keepers
+        // would send competing connects. Whoever holds the lock runs it.
+        lockFD = open(KEEPER_LOCK, O_CREAT | O_RDWR, 0o644)
+        guard lockFD >= 0, flock(lockFD, LOCK_EX | LOCK_NB) == 0 else { return }
+
+        let t = DispatchSource.makeTimerSource(queue: q)
+        t.schedule(deadline: .now() + 2, repeating: 5, leeway: .seconds(1))
+        t.setEventHandler { [weak self] in self?.tick("timer") }
+        t.resume()
+        timer = t
+
+        let nc = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification] {
+            nc.addObserver(forName: name, object: nil, queue: nil) { [weak self] _ in self?.kick("wake") }
+        }
+        clog("connection keeper started")
+    }
+
+    // Something changed that makes a connect likely to succeed now: forget the backoff.
+    func kick(_ reason: String) {
+        q.async { [weak self] in
+            guard let self = self else { return }
+            self.backoff = 5; self.lastAttempt = .distantPast
+            self.tick(reason)
+        }
+    }
+
+    // A sleeping Mac drops Sidecar. While armed, hold off idle system sleep (the display
+    // may still sleep).
+    private func holdAwake(_ on: Bool) {
+        if on, awake == nil {
+            awake = ProcessInfo.processInfo.beginActivity(options: .idleSystemSleepDisabled,
+                                                          reason: "Sidecar is the only display")
+        } else if !on, let a = awake {
+            ProcessInfo.processInfo.endActivity(a); awake = nil
+        }
+    }
+
+    private func tick(_ reason: String) {
+        holdAwake(armed)
+        guard armed, !paused else { return }
+        let dev = savedDevice()
+        guard !dev.isEmpty else { return }
+
+        if sidecarDisplay() != nil {
+            if !wasConnected {
+                wasConnected = true
+                clog("connected (\(reason), \(attempts) attempt(s))")
+                backoff = 5; attempts = 0; notedMissing = false
+                Thread.sleep(forTimeInterval: 2)             // let the new display settle
+                runFixup()
+            }
+            return
+        }
+        if wasConnected {
+            wasConnected = false
+            clog("Sidecar display gone -> reconnecting")
+            lastAttempt = .distantPast; backoff = 5
+        }
+        guard Date().timeIntervalSince(lastAttempt) >= backoff else { return }
+
+        let l = parseList()
+        if l.connected.contains(dev) { return }              // session up, display still arriving
+        guard l.all.contains(dev) else {
+            // Locked, not trusted yet, or the Mac is still booting. Connecting now is
+            // pointless; keep looking until it shows up.
+            if !notedMissing {
+                notedMissing = true
+                clog("\(dev) not in Sidecar device list \(l.all) -> waiting")
+            }
+            return
+        }
+        notedMissing = false
+        attempts += 1
+        clog("[\(reason)] connect #\(attempts) -> \(dev)")
+        _ = ctl(["connect", dev])
+        lastAttempt = Date()
+        backoff = min(backoff * 2, 60)                       // 5s, 10s, 20s, 40s, then every 60s
+    }
 }
 
 private func reconfigCallback(_ display: CGDirectDisplayID,
@@ -525,6 +712,8 @@ struct ContentView: View {
             Toggle(isOn: Binding(get: { st.armed }, set: { v in
                 ensureSupportDir()
                 if v { sh("/usr/bin/touch '\(ARMED)'") } else { sh("/bin/rm -f '\(ARMED)'") }
+                try? FileManager.default.removeItem(atPath: PAUSED)
+                ConnectionKeeper.shared.kick("armed")
                 refresh()
             })) {
                 VStack(alignment: .leading, spacing: 1) {
@@ -586,7 +775,15 @@ struct ContentView: View {
                     busy = true
                     DispatchQueue.global().async {
                         let act = st.ipadConnected ? "disconnect" : "connect"
-                        _ = ctl("\(act) \"\(st.device)\"")
+                        // A manual disconnect must stick, or the keeper reconnects within
+                        // seconds. Replugging the cable or connecting by hand lifts it.
+                        if act == "disconnect" {
+                            ensureSupportDir()
+                            FileManager.default.createFile(atPath: PAUSED, contents: nil)
+                        } else {
+                            try? FileManager.default.removeItem(atPath: PAUSED)
+                        }
+                        _ = ctl([act, st.device])
                         usleep(1_500_000)
                         DispatchQueue.main.async { busy = false; refresh() }
                     }
@@ -617,6 +814,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             exit(0)
         }
         ScreenKeeper.shared.start()
+        ConnectionKeeper.shared.start()
         if Self.isBackground {
             // Launched at login with no one watching: no Dock icon, no window, just the keeper.
             NSApp.setActivationPolicy(.accessory)
